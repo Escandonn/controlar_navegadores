@@ -1,163 +1,115 @@
+Actúa como un ingeniero de software senior experto en Python, SeleniumBase y PyQt5, especializado en arquitectura limpia (Clean Architecture).
 
+Quiero construir una aplicación de escritorio que permita gestionar y ejecutar múltiples perfiles de navegador (Chrome) de forma dinámica.
 
----
+### 🧠 CONTEXTO DEL PROYECTO
 
-## 🧠 Prompt profesional (listo para IA)
+Tengo la siguiente estructura:
 
-Crea una aplicación de escritorio moderna en **PyQt5** con arquitectura limpia, enfocada en la gestión de perfiles de navegador mediante un sistema CRUD completo.
+* application/
+* controller/
+* core/
+* infrastructure/
+* presentation/
+* profiles/chrome/{Profile 1, Profile 2, ...}
+* data.json (almacena los perfiles)
 
----
+La interfaz gráfica ya existe (PyQt5) con:
 
-## 🎯 Objetivo
+* Tabla de perfiles (CRUD completo: agregar, editar, eliminar)
+* Botón: "Abrir Navegadores"
 
-Desarrollar una interfaz tipo dashboard donde el usuario pueda administrar perfiles de navegador con múltiples atributos, incluyendo selección de aplicaciones (redes sociales), credenciales y metadatos.
+Cada perfil contiene:
 
----
-
-## 🧱 Estructura de la aplicación
-
-### 1. Ventana principal
-
-* Diseño moderno tipo dashboard
-* Layout horizontal:
-
-  * Sidebar (menú lateral izquierdo)
-  * Área principal dinámica (contenido)
-* Estilos con QSS (profesional, limpio, moderno)
-
----
-
-### 2. Sidebar (menú lateral)
-
-* Botones verticales con scroll
-* Opciones:
-
-  * **Perfiles (CRUD principal)** ← esta es la opción A
-  * Configuración
-  * Estadísticas
-  * Otros módulos (simulados si no se implementan)
-* Cambio dinámico de vistas con `QStackedWidget`
+* name (coincide con carpeta en profiles/chrome/)
+* browser (por ahora solo Chrome)
+* email (opcional)
+* password (opcional)
+* apps (ej: WhatsApp)
+* created_at
+* status (active / inactive)
 
 ---
 
-## 📊 Módulo principal: Gestión de Perfiles (CRUD)
+### 🎯 OBJETIVO
 
-Crear un sistema completo de CRUD con una tabla profesional.
+Diseñar e implementar un sistema profesional que permita:
 
-### 📋 Campos del perfil (8 campos)
-
-Cada registro debe contener:
-
-1. **Nombre del perfil del navegador**
-2. **Navegador utilizado** (ComboBox: Chrome, Firefox, Edge, etc.)
-3. **Correo electrónico** (opcional)
-4. **Contraseña**
-5. **Aplicaciones utilizadas**
-
-   * Selección múltiple con checkboxes (ej: WhatsApp, Facebook, Instagram, Twitter, etc.)
-6. **Fecha de creación**
-7. **Estado (activo/inactivo)** (opcional pero recomendado)
-8. **Notas adicionales** (opcional)
+1. Abrir dinámicamente 1 o múltiples navegadores según los perfiles activos o seleccionados
+2. Cada navegador debe usar su propio perfil real de Chrome (user_data_dir)
+3. Ejecutar los navegadores en paralelo (threading o multiprocessing)
+4. Mantener separación de capas (Clean Architecture)
+5. Permitir escalabilidad futura (soporte para otros navegadores)
+6. Integrarse fácilmente con la UI (botón PyQt)
 
 ---
 
-### ⚙️ Funcionalidades CRUD
+### 🧩 REQUISITOS TÉCNICOS
 
-* ➕ Crear perfil (formulario en `QDialog`)
-* ✏️ Editar perfil
-* ❌ Eliminar perfil
-* 🔍 Buscar / filtrar perfiles
-* 📄 Mostrar datos en tabla (`QTableWidget` o `QTableView`)
-* Scroll horizontal y vertical
-
----
-
-### 🧾 Formulario (Crear / Editar)
-
-Debe incluir:
-
-* Inputs de texto (`QLineEdit`)
-* ComboBox para navegador
-* Campo de contraseña (`QLineEdit` con modo password)
-* Sección de aplicaciones:
-
-  * Lista de checkboxes (multi-selección)
-* Selector de fecha (`QDateEdit`)
-* Validación de campos
-* Botones: Guardar / Cancelar
+* Usar SeleniumBase
+* Usar perfiles reales desde:
+  profiles/chrome/{profile_name}
+* No hardcodear perfiles
+* Leer datos desde data.json
+* Filtrar por status = active
+* Manejar errores si el perfil no existe
+* Código limpio, modular y reutilizable
 
 ---
 
-## 🎨 Diseño (UI/UX)
+### 🏗️ LO QUE NECESITO QUE GENERES
 
-* Estilo moderno tipo dashboard
-* Sidebar oscuro + contenido claro (o viceversa)
-* Botones con hover y animaciones suaves
-* Bordes redondeados
-* Tipografía limpia
-* Espaciado profesional
-* Scroll en cada sección (`QScrollArea`)
+1. Diseño de clases completo por capas:
 
----
+   * core (entidad Profile)
+   * application (servicios)
+   * infrastructure (Selenium manager)
+   * controller (orquestador)
+   * ejemplo de integración con UI
 
-## 🧩 Arquitectura del proyecto
+2. Código funcional para:
 
-Estructura obligatoria:
+   * Leer perfiles desde JSON
+   * Filtrar perfiles activos
+   * Abrir múltiples navegadores en paralelo
+   * Manejar rutas de perfiles correctamente
 
-```plaintext
-project/
-│
-├── main.py
-│
-├── presentation/        # UI (PyQt)
-│   └── main_window.py
-│
-├── controller/          # Punto de entrada único
-│   └── app_controller.py
-│
-├── application/         # Casos de uso
-│   └── browser_use_case.py
-│
-├── domain/              # (opcional, lógica pura si crece)
-│
-├── infrastructure/      # Implementaciones reales
-│   ├── selenium/
-│   │   └── selenium_service.py
-│   └── workers/
-│       └── browser_worker.py
-│
-└── core/                # config, constantes
-    └── config.py
-```
+3. Manejo de concurrencia:
+
+   * Explicar cuándo usar threading vs multiprocessing
+   * Implementar una opción recomendada
+
+4. Buenas prácticas:
+
+   * SOLID
+   * separación de responsabilidades
+   * escalabilidad
+
+5. Flujo completo:
+   UI → Controller → Service → Selenium Manager
 
 ---
 
-## ⚙️ Requisitos técnicos
+### 🚀 BONUS (IMPORTANTE)
 
-* Python 3
-* PyQt5
-* Código modular, limpio y comentado
-* Preparado para escalar
+Incluye también:
 
----
-
-## 🚀 Extras 
-
-*
-* Iconos modernos
-* Animaciones al cambiar vistas
-* Notificaciones visuales (mensajes tipo toast)
+* Cómo abrir solo perfiles seleccionados desde la tabla (no todos)
+* Cómo agregar logs por cada navegador
+* Cómo manejar estados (abierto/cerrado)
+* Cómo extender a Firefox o Edge
 
 ---
 
-## 📌 Resultado esperado
+### ❌ NO QUIERO
 
-Una aplicación profesional donde:
-
-* El usuario gestiona perfiles de navegador
-* Puede crear, editar y eliminar registros
-* Selecciona aplicaciones mediante checkboxes
-* Visualiza todo en una tabla moderna con scroll
-* Navega fácilmente desde el sidebar
+* Código desordenado
+* Todo en un solo archivo
+* Hardcodear perfiles
+* Soluciones básicas tipo script
 
 ---
+
+### ✅ QUIERO
+
+Una base profesional, escalable, modular y lista para crecer como software real.

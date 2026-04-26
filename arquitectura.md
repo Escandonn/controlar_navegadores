@@ -5,6 +5,7 @@
 Es la que mejor te sirve para:
 
 * PyQt (UI)
+* Bots de WhatsApp Web con perfiles reales
 * Automatización con SeleniumBase
 * Escalar luego a API, Telegram, n8n, etc.
 
@@ -18,24 +19,26 @@ project/
 ├── main.py
 │
 ├── presentation/        # UI (PyQt)
-│   └── main_window.py
+│   └── dashboard_window.py
 │
 ├── controller/          # Punto de entrada único
 │   └── app_controller.py
 │
 ├── application/         # Casos de uso
+│   ├── crud_use_case.py
 │   └── browser_use_case.py
-│
-├── domain/              # (opcional, lógica pura si crece)
 │
 ├── infrastructure/      # Implementaciones reales
 │   ├── selenium/
 │   │   └── selenium_service.py
-│   └── workers/
-│       └── browser_worker.py
+│   ├── workers/
+│   │   └── browser_worker.py
+│   ├── bot_personality_service.py
+│   └── data_repository.py
 │
 └── core/                # config, constantes
-    └── config.py
+    ├── config.py
+    └── profile.py
 ```
 
 ---
@@ -49,15 +52,15 @@ project/
 # 🔄 Flujo único de la app
 
 ```plaintext
-UI (botón)
+UI (bot de WhatsApp / tabla seleccionada)
    ↓
 Controller
    ↓
-Use Case
+Use Case (perfil activo / seleccionados)
    ↓
-Worker (multiprocessing)
+Worker (multiprocessing por perfil)
    ↓
-SeleniumBase
+SeleniumBase con user_data_dir y WhatsApp Web
 ```
 
 ---
@@ -68,9 +71,10 @@ SeleniumBase
 
 * Solo interfaz
 * Solo eventos (clicks)
+* Selecciona perfiles de bot y lanza bots de WhatsApp Web
 
 ```python
-self.controller.start_browsers()
+self.controller.open_active_profiles()
 ```
 
 ---
@@ -79,13 +83,20 @@ self.controller.start_browsers()
 
 * Punto único de entrada
 * Orquesta todo
+* Envía los perfiles seleccionados al caso de uso de bots
 
 ```python
-from application.browser_use_case import run_browsers_use_case
+from application.browser_use_case import (
+    run_active_profiles_use_case,
+    run_selected_profiles_use_case
+)
 
 class AppController:
-    def start_browsers(self):
-        run_browsers_use_case()
+    def open_active_profiles(self):
+        run_active_profiles_use_case()
+
+    def open_selected_profiles(self, profile_ids):
+        run_selected_profiles_use_case(profile_ids)
 ```
 
 ---
@@ -93,53 +104,63 @@ class AppController:
 ## 🧠 3. `application/` (casos de uso)
 
 * Define lo que hace la app
+* Filtra perfiles activos o seleccionados antes de abrirlos
 
 ```python
-from infrastructure.workers.browser_worker import run_browsers
+from infrastructure.workers.browser_worker import run_profile_browsers
+from infrastructure.data_repository import data_repository
 
-def run_browsers_use_case():
-    run_browsers()
+
+def run_active_profiles_use_case():
+    profiles = data_repository.get_active_records()
+    run_profile_browsers(profiles)
+
+
+def run_selected_profiles_use_case(profile_ids):
+    profiles = data_repository.get_records_by_ids(profile_ids)
+    run_profile_browsers(profiles)
 ```
 
 ---
 
 ## ⚙️ 4. `infrastructure/workers/`
 
-* Multiprocessing
+* Multiprocessing por perfil
+* Cada proceso abre un navegador con su propio `user_data_dir`
 
 ```python
 import multiprocessing
-from infrastructure.selenium.selenium_service import open_chrome, open_firefox
+from infrastructure.selenium.selenium_service import open_profile_browser
 
-def run_browsers():
-    p1 = multiprocessing.Process(target=open_chrome)
-    p2 = multiprocessing.Process(target=open_firefox)
 
-    p1.start()
-    p2.start()
+def run_profile_browsers(profiles):
+    processes = []
+    for profile in profiles:
+        process = multiprocessing.Process(target=open_profile_browser, args=(profile,))
+        process.start()
+        processes.append(process)
 
-    p1.join()
-    p2.join()
+    for process in processes:
+        process.join()
 ```
 
 ---
 
 ## 🌐 5. `infrastructure/selenium/`
 
-* Automatización con SeleniumBase
+* Automatización con SeleniumBase usando perfiles reales
+* Cada perfil puede tener una personalidad y contexto/API propio
+* Usa `user_data_dir` apuntando a `profiles/chrome/{perfil}`
+* Los navegadores de WhatsApp Web se mantienen abiertos en cada proceso hasta que el usuario los cierra
 
 ```python
 from seleniumbase import SB
 
-def open_chrome():
-    with SB(browser="chrome", headed=True) as sb:
-        sb.open("https://google.com")
-        sb.sleep(5)
 
-def open_firefox():
-    with SB(browser="firefox", headed=True) as sb:
-        sb.open("https://bing.com")
-        sb.sleep(5)
+def open_profile_browser(profile):
+    with SB(browser="chrome", headed=True, user_data_dir=profile.user_data_dir) as sb:
+        sb.open("https://web.whatsapp.com")
+        sb.pause(999999)
 ```
 
 ---

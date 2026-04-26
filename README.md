@@ -24,12 +24,13 @@ Flujo de ejecución:
 - `controller/` — orquestador central
 - `application/` — casos de uso
   - `crud_use_case.py` — Casos de uso para operaciones CRUD
-  - `browser_use_case.py` — Caso de uso para navegadores
+  - `browser_use_case.py` — Casos de uso para abrir perfiles
 - `infrastructure/` — implementaciones reales
-  - `infrastructure/selenium/` — servicio SeleniumBase
-  - `infrastructure/workers/` — procesos de navegador
+  - `infrastructure/selenium/` — servicio SeleniumBase y manejo de perfiles Chrome
+  - `infrastructure/workers/` — procesos por perfil
   - `infrastructure/data_repository.py` — Repositorio de datos para perfiles
 - `core/` — configuración y constantes
+  - `core/profile.py` — entidad de dominio para perfiles
 
 ## Funcionalidades
 
@@ -50,16 +51,20 @@ Flujo de ejecución:
 5. Aplicaciones utilizadas (selección múltiple: WhatsApp, Facebook, Instagram, etc.)
 6. Fecha de creación
 7. Estado (Activo/Inactivo)
-8. Notas adicionales
+8. Personalidad del bot
+9. Contexto/API del bot
+10. Notas adicionales
 
 ## Cómo funciona
 
 - El usuario interactúa con el panel de control PyQt.
 - El `DashboardWindow` envía acciones al `AppController`.
-- `AppController` llama a los casos de uso correspondientes (CRUD o navegadores).
+- `AppController` llama a los casos de uso correspondientes (CRUD o apertura de perfiles).
 - Para CRUD: El caso de uso opera sobre el repositorio de datos.
-- Para navegadores: El caso de uso inicia `run_browsers()` en `infrastructure/workers/browser_worker.py`.
-- El worker crea procesos para abrir Chrome y Firefox con SeleniumBase.
+- Para abrir navegadores: se filtran perfiles activos o seleccionados y se envían al worker.
+- Cada perfil puede contener una personalidad y contexto/API distinto.
+- El worker crea procesos independientes para cada perfil y el servicio SeleniumBase abre Chrome con `user_data_dir`.
+- Los navegadores de WhatsApp Web se mantienen abiertos mientras el bot está en ejecución.
 
 ## Ejecución
 
@@ -78,7 +83,9 @@ python main.py
 ## Configuración
 
 - `core/config.py` define `CHROME_URL` y `FIREFOX_URL`.
+- `core/profile.py` define la entidad `Profile` y su ruta real de perfil.
 - Los perfiles se almacenan persistentemente en `data.json`.
+- Las carpetas de perfil reales deben existir en `profiles/chrome/{nombre}`.
 
 ## Notas
 
