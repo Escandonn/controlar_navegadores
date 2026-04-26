@@ -1,5 +1,3 @@
-
-
 ---
 
 # 🧠 Arquitectura única: **Clean Architecture (simplificada + controller central)**

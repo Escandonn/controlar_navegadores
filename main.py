@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 
-from presentation.main_window import MainWindow
+from presentation.dashboard_window import DashboardWindow
 from controller.app_controller import AppController
 
 
@@ -9,7 +9,7 @@ def main():
     app = QApplication(sys.argv)
 
     controller = AppController()
-    window = MainWindow(controller)
+    window = DashboardWindow(controller)
 
     window.show()
     sys.exit(app.exec_())
