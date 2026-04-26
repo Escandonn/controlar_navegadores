@@ -1,0 +1,29 @@
+# 🔹 Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.env.*
+
+# 🔹 VSCode
+.vscode/
+
+# 🔹 Logs
+*.log
+
+# 🔹 Sistema
+.DS_Store
+Thumbs.db
+
+# 🔹 Selenium / Chrome Profiles (IMPORTANTE)
+profiles/chrome/*
+!profiles/chrome/.gitkeep
+
+# Opcional: si quieres ignorar todo profiles
+# profiles/
+
+# 🔹 Archivos temporales
+*.tmp
+*.temp
