@@ -4,10 +4,93 @@ from PyQt5.QtWidgets import (
     QHeaderView, QLineEdit, QDialog, QFormLayout, QSpinBox,
     QComboBox, QDateEdit, QMessageBox, QScrollArea, QCheckBox
 )
-from PyQt5.QtCore import Qt, QDate
+from PyQt5.QtCore import Qt, QDate, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
 from typing import Dict, Any
 import re
+
+
+class BrowserWorkerThread(QThread):
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+
+    def __init__(self, controller):
+        super().__init__()
+        self.controller = controller
+
+    def run(self):
+        try:
+            self.controller.start_browsers()
+            self.finished.emit()
+        except Exception as e:
+            self.error.emit(str(e))
+
+
+class BrowserWidget(QWidget):
+    def __init__(self, controller):
+        super().__init__()
+        self.controller = controller
+        self.thread = None
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+
+        label = QLabel("Abrir Navegadores Web")
+        label.setStyleSheet("font-size: 18px; font-weight: bold; margin: 20px;")
+        layout.addWidget(label)
+
+        info_label = QLabel(
+            "Haz clic en el botón para abrir los navegadores configurados.\n"
+            "Se abrirán en procesos separados."
+        )
+        info_label.setStyleSheet("margin: 20px; color: #666;")
+        layout.addWidget(info_label)
+
+        self.open_btn = QPushButton("Abrir Navegadores")
+        self.open_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #28a745;
+                color: white;
+                font-size: 16px;
+                padding: 15px;
+                border-radius: 5px;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #218838;
+            }
+            QPushButton:pressed {
+                background-color: #1e7e34;
+            }
+        """)
+        self.open_btn.clicked.connect(self.open_browsers)
+        layout.addWidget(self.open_btn)
+
+        self.status_label = QLabel("")
+        self.status_label.setStyleSheet("margin: 20px; color: #333;")
+        layout.addWidget(self.status_label)
+
+        layout.addStretch()
+        self.setLayout(layout)
+
+    def open_browsers(self):
+        self.open_btn.setEnabled(False)
+        self.status_label.setText("Abriendo navegadores...")
+
+        self.thread = BrowserWorkerThread(self.controller)
+        self.thread.finished.connect(self.on_browsers_opened)
+        self.thread.error.connect(self.on_browser_error)
+        self.thread.start()
+
+    def on_browsers_opened(self):
+        self.status_label.setText("✓ Navegadores abiertos exitosamente")
+        self.open_btn.setEnabled(True)
+
+    def on_browser_error(self, error_msg):
+        self.status_label.setText(f"✗ Error: {error_msg}")
+        self.open_btn.setEnabled(True)
+        QMessageBox.critical(self, "Error", f"No se pudieron abrir los navegadores:\n{error_msg}")
 
 
 class CrudWidget(QWidget):
@@ -214,7 +297,7 @@ class DashboardWindow(QMainWindow):
         sidebar_layout = QVBoxLayout()
 
         self.buttons = {}
-        options = ['Perfiles', 'Configuración', 'Estadísticas', 'Ayuda']
+        options = ['Perfiles', 'Abrir Navegadores', 'Configuración', 'Estadísticas']
         for opt in options:
             btn = QPushButton(opt)
             btn.clicked.connect(lambda checked, o=opt: self.switch_view(o))
@@ -233,8 +316,12 @@ class DashboardWindow(QMainWindow):
         self.views['Perfiles'] = CrudWidget(self.controller)
         self.stacked_widget.addWidget(self.views['Perfiles'])
 
+        # Option Abrir Navegadores
+        self.views['Abrir Navegadores'] = BrowserWidget(self.controller)
+        self.stacked_widget.addWidget(self.views['Abrir Navegadores'])
+
         # Other options: simple labels
-        for opt in options[1:]:
+        for opt in options[2:]:
             label = QLabel(f"Contenido de {opt}")
             label.setAlignment(Qt.AlignCenter)
             scroll = QScrollArea()
