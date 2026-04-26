@@ -1,6 +1,4 @@
-from PyQt5.QtWidgets import (
-    QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
-)
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
 
@@ -19,11 +17,9 @@ class WorkerThread(QThread):
 class MainWindow(QMainWindow):
     def __init__(self, controller):
         super().__init__()
-
         self.controller = controller
         self.setWindowTitle("SeleniumBase Automation")
         self.setGeometry(300, 200, 420, 220)
-
         self.init_ui()
 
     def init_ui(self):
@@ -45,7 +41,6 @@ class MainWindow(QMainWindow):
                 background-color: #1e7e34;
             }
         """)
-
         self.button.clicked.connect(self.start_process)
 
         layout.addWidget(self.label)

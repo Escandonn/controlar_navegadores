@@ -1,7 +1,7 @@
-from workers.browser_worker import run_browsers
+from application.browser_use_case import run_browsers_use_case
 
 
 class AppController:
 
     def start_browsers(self):
-        run_browsers()
+        run_browsers_use_case()
