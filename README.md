@@ -1,4 +1,8 @@
-# Panel de Control con CRUD
+# Panel de Control para Gestión de Perfiles de Navegador
+
+## Descripción
+
+Aplicación de escritorio en PyQt5 para gestionar perfiles de navegador con un sistema CRUD completo. Permite administrar credenciales, aplicaciones utilizadas y metadatos de perfiles.
 
 ## Arquitectura de la aplicación
 
@@ -8,7 +12,7 @@ Flujo de ejecución:
 
 1. `presentation` → UI PyQt (Panel de Control)
 2. `controller` → orquesta las acciones
-3. `application` → casos de uso (CRUD)
+3. `application` → casos de uso (CRUD de perfiles)
 4. `infrastructure` → repositorio de datos y procesos separados
 5. `infrastructure/selenium` → SeleniumBase (para control de navegadores)
 
@@ -24,8 +28,29 @@ Flujo de ejecución:
 - `infrastructure/` — implementaciones reales
   - `infrastructure/selenium/` — servicio SeleniumBase
   - `infrastructure/workers/` — procesos de navegador
-  - `infrastructure/data_repository.py` — Repositorio de datos para CRUD
+  - `infrastructure/data_repository.py` — Repositorio de datos para perfiles
 - `core/` — configuración y constantes
+
+## Funcionalidades
+
+### Gestión de Perfiles
+
+- **Crear perfil**: Formulario con campos para nombre, navegador, email, contraseña, aplicaciones, fecha, estado y notas.
+- **Editar perfil**: Modificar datos existentes.
+- **Eliminar perfil**: Confirmación antes de eliminar.
+- **Buscar/filtrar**: Búsqueda en tiempo real por cualquier campo.
+- **Tabla avanzada**: Vista tabular con scroll, selección de filas.
+
+### Campos del Perfil
+
+1. Nombre del perfil
+2. Navegador (Chrome, Firefox, Edge, Safari, Opera)
+3. Correo electrónico
+4. Contraseña (oculta en vista)
+5. Aplicaciones utilizadas (selección múltiple: WhatsApp, Facebook, Instagram, etc.)
+6. Fecha de creación
+7. Estado (Activo/Inactivo)
+8. Notas adicionales
 
 ## Cómo funciona
 
@@ -53,7 +78,7 @@ python main.py
 ## Configuración
 
 - `core/config.py` define `CHROME_URL` y `FIREFOX_URL`.
-- Los datos CRUD se almacenan en memoria en `DataRepository`.
+- Los perfiles se almacenan en memoria en `DataRepository`.
 
 ## Notas
 

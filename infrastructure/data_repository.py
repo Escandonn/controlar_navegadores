@@ -12,6 +12,9 @@ class DataRepository:
     def add_record(self, record: Dict[str, Any]) -> Dict[str, Any]:
         record['id'] = self.next_id
         self.next_id += 1
+        # Ensure aplicaciones is a list
+        if 'aplicaciones' not in record:
+            record['aplicaciones'] = []
         self.records.append(record)
         return record
 

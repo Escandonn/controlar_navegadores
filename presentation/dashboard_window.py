@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton,
     QStackedWidget, QLabel, QTableWidget, QTableWidgetItem,
     QHeaderView, QLineEdit, QDialog, QFormLayout, QSpinBox,
-    QComboBox, QDateEdit, QMessageBox, QScrollArea
+    QComboBox, QDateEdit, QMessageBox, QScrollArea, QCheckBox
 )
 from PyQt5.QtCore import Qt, QDate
 from PyQt5.QtGui import QFont
@@ -31,7 +31,7 @@ class CrudWidget(QWidget):
         self.table = QTableWidget()
         self.table.setColumnCount(8)
         self.table.setHorizontalHeaderLabels([
-            "ID", "Nombre", "Edad", "Email", "Teléfono", "Dirección", "Estado", "Fecha"
+            "Nombre", "Navegador", "Correo electrónico", "Contraseña", "Aplicaciones", "Fecha", "Estado", "Notas"
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
@@ -61,14 +61,14 @@ class CrudWidget(QWidget):
     def populate_table(self, records):
         self.table.setRowCount(len(records))
         for row, record in enumerate(records):
-            self.table.setItem(row, 0, QTableWidgetItem(str(record['id'])))
-            self.table.setItem(row, 1, QTableWidgetItem(record['nombre']))
-            self.table.setItem(row, 2, QTableWidgetItem(str(record['edad'])))
-            self.table.setItem(row, 3, QTableWidgetItem(record['email']))
-            self.table.setItem(row, 4, QTableWidgetItem(record['telefono']))
-            self.table.setItem(row, 5, QTableWidgetItem(record['direccion']))
+            self.table.setItem(row, 0, QTableWidgetItem(record['nombre']))
+            self.table.setItem(row, 1, QTableWidgetItem(record['navegador']))
+            self.table.setItem(row, 2, QTableWidgetItem(record['email']))
+            self.table.setItem(row, 3, QTableWidgetItem("***"))  # Hide password
+            self.table.setItem(row, 4, QTableWidgetItem(', '.join(record['aplicaciones'])))
+            self.table.setItem(row, 5, QTableWidgetItem(record['fecha']))
             self.table.setItem(row, 6, QTableWidgetItem(record['estado']))
-            self.table.setItem(row, 7, QTableWidgetItem(record['fecha']))
+            self.table.setItem(row, 7, QTableWidgetItem(record['notas']))
 
     def filter_table(self):
         query = self.search_edit.text().lower()
@@ -85,62 +85,72 @@ class CrudWidget(QWidget):
     def edit_record(self):
         selected = self.table.currentRow()
         if selected == -1:
-            QMessageBox.warning(self, "Error", "Selecciona un registro para editar.")
+            QMessageBox.warning(self, "Error", "Selecciona un perfil para editar.")
             return
-        record_id = int(self.table.item(selected, 0).text())
-        record = next((r for r in self.records if r['id'] == record_id), None)
+        # Since ID not shown, find by matching data
+        nombre = self.table.item(selected, 0).text()
+        navegador = self.table.item(selected, 1).text()
+        record = next((r for r in self.records if r['nombre'] == nombre and r['navegador'] == navegador), None)
         if record:
             dialog = RecordDialog(record)
             if dialog.exec_() == QDialog.Accepted:
                 data = dialog.get_data()
-                self.controller.update_record(record_id, data)
+                self.controller.update_record(record['id'], data)
                 self.load_data()
 
     def delete_record(self):
         selected = self.table.currentRow()
         if selected == -1:
-            QMessageBox.warning(self, "Error", "Selecciona un registro para eliminar.")
+            QMessageBox.warning(self, "Error", "Selecciona un perfil para eliminar.")
             return
-        record_id = int(self.table.item(selected, 0).text())
-        reply = QMessageBox.question(self, "Confirmar", "¿Eliminar registro?",
-                                     QMessageBox.Yes | QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            self.controller.delete_record(record_id)
-            self.load_data()
+        nombre = self.table.item(selected, 0).text()
+        navegador = self.table.item(selected, 1).text()
+        record = next((r for r in self.records if r['nombre'] == nombre and r['navegador'] == navegador), None)
+        if record:
+            reply = QMessageBox.question(self, "Confirmar", "¿Eliminar perfil?",
+                                         QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.controller.delete_record(record['id'])
+                self.load_data()
 
 
 class RecordDialog(QDialog):
     def __init__(self, record=None):
         super().__init__()
         self.record = record
-        self.setWindowTitle("Registro")
+        self.apps = ["WhatsApp", "Facebook", "Instagram", "Twitter", "LinkedIn", "YouTube", "TikTok"]
+        self.setWindowTitle("Perfil")
         self.init_ui()
 
     def init_ui(self):
         layout = QFormLayout()
 
         self.nombre_edit = QLineEdit(self.record['nombre'] if self.record else "")
-        layout.addRow("Nombre:", self.nombre_edit)
+        layout.addRow("Nombre del perfil:", self.nombre_edit)
 
-        self.edad_spin = QSpinBox()
-        self.edad_spin.setRange(0, 120)
-        self.edad_spin.setValue(self.record['edad'] if self.record else 0)
-        layout.addRow("Edad:", self.edad_spin)
+        self.navegador_combo = QComboBox()
+        self.navegador_combo.addItems(["Chrome", "Firefox", "Edge", "Safari", "Opera"])
+        if self.record:
+            self.navegador_combo.setCurrentText(self.record['navegador'])
+        layout.addRow("Navegador:", self.navegador_combo)
 
         self.email_edit = QLineEdit(self.record['email'] if self.record else "")
         layout.addRow("Correo electrónico:", self.email_edit)
 
-        self.telefono_edit = QLineEdit(self.record['telefono'] if self.record else "")
-        layout.addRow("Teléfono:", self.telefono_edit)
+        self.contrasena_edit = QLineEdit(self.record['contrasena'] if self.record else "")
+        self.contrasena_edit.setEchoMode(QLineEdit.Password)
+        layout.addRow("Contraseña:", self.contrasena_edit)
 
-        self.direccion_edit = QLineEdit(self.record['direccion'] if self.record else "")
-        layout.addRow("Dirección:", self.direccion_edit)
-
-        self.estado_combo = QComboBox()
-        self.estado_combo.addItems(["Activo", "Inactivo"])
-        if self.record:
-            self.estado_combo.setCurrentText(self.record['estado'])
-        layout.addRow("Estado:", self.estado_combo)
+        # Aplicaciones
+        apps_label = QLabel("Aplicaciones utilizadas:")
+        layout.addRow(apps_label)
+        self.checkboxes = {}
+        for app in self.apps:
+            cb = QCheckBox(app)
+            if self.record and app in self.record['aplicaciones']:
+                cb.setChecked(True)
+            layout.addRow(cb)
+            self.checkboxes[app] = cb
 
         self.fecha_edit = QDateEdit()
         self.fecha_edit.setCalendarPopup(True)
@@ -148,11 +158,20 @@ class RecordDialog(QDialog):
             self.fecha_edit.setDate(QDate.fromString(self.record['fecha'], "yyyy-MM-dd"))
         else:
             self.fecha_edit.setDate(QDate.currentDate())
-        layout.addRow("Fecha:", self.fecha_edit)
+        layout.addRow("Fecha de creación:", self.fecha_edit)
+
+        self.estado_combo = QComboBox()
+        self.estado_combo.addItems(["Activo", "Inactivo"])
+        if self.record:
+            self.estado_combo.setCurrentText(self.record['estado'])
+        layout.addRow("Estado:", self.estado_combo)
+
+        self.notas_edit = QLineEdit(self.record['notas'] if self.record else "")
+        layout.addRow("Notas adicionales:", self.notas_edit)
 
         buttons = QWidget()
         btn_layout = QHBoxLayout()
-        ok_btn = QPushButton("Aceptar")
+        ok_btn = QPushButton("Guardar")
         ok_btn.clicked.connect(self.accept)
         cancel_btn = QPushButton("Cancelar")
         cancel_btn.clicked.connect(self.reject)
@@ -166,12 +185,13 @@ class RecordDialog(QDialog):
     def get_data(self) -> Dict[str, Any]:
         return {
             'nombre': self.nombre_edit.text(),
-            'edad': self.edad_spin.value(),
+            'navegador': self.navegador_combo.currentText(),
             'email': self.email_edit.text(),
-            'telefono': self.telefono_edit.text(),
-            'direccion': self.direccion_edit.text(),
+            'contrasena': self.contrasena_edit.text(),
+            'aplicaciones': [app for app, cb in self.checkboxes.items() if cb.isChecked()],
+            'fecha': self.fecha_edit.date().toString("yyyy-MM-dd"),
             'estado': self.estado_combo.currentText(),
-            'fecha': self.fecha_edit.date().toString("yyyy-MM-dd")
+            'notas': self.notas_edit.text()
         }
 
 
@@ -194,7 +214,7 @@ class DashboardWindow(QMainWindow):
         sidebar_layout = QVBoxLayout()
 
         self.buttons = {}
-        options = ['A', 'B', 'C', 'D', 'E', 'F']
+        options = ['Perfiles', 'Configuración', 'Estadísticas', 'Ayuda']
         for opt in options:
             btn = QPushButton(opt)
             btn.clicked.connect(lambda checked, o=opt: self.switch_view(o))
@@ -209,9 +229,9 @@ class DashboardWindow(QMainWindow):
         self.stacked_widget = QStackedWidget()
         self.views = {}
 
-        # Option A: CRUD
-        self.views['A'] = CrudWidget(self.controller)
-        self.stacked_widget.addWidget(self.views['A'])
+        # Option Perfiles: CRUD
+        self.views['Perfiles'] = CrudWidget(self.controller)
+        self.stacked_widget.addWidget(self.views['Perfiles'])
 
         # Other options: simple labels
         for opt in options[1:]:
@@ -227,8 +247,8 @@ class DashboardWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
-        # Default to A
-        self.switch_view('A')
+        # Default to Perfiles
+        self.switch_view('Perfiles')
 
     def switch_view(self, option):
         self.stacked_widget.setCurrentWidget(self.views[option])
