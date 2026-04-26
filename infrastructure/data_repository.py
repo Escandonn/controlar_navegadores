@@ -37,5 +37,5 @@ class DataRepository:
         return None
 
 
-# Singleton instance
+# Instancia singleton
 data_repository = DataRepository()

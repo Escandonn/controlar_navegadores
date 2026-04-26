@@ -128,7 +128,7 @@ class RecordDialog(QDialog):
         layout.addRow("Edad:", self.edad_spin)
 
         self.email_edit = QLineEdit(self.record['email'] if self.record else "")
-        layout.addRow("Email:", self.email_edit)
+        layout.addRow("Correo electrónico:", self.email_edit)
 
         self.telefono_edit = QLineEdit(self.record['telefono'] if self.record else "")
         layout.addRow("Teléfono:", self.telefono_edit)
@@ -152,7 +152,7 @@ class RecordDialog(QDialog):
 
         buttons = QWidget()
         btn_layout = QHBoxLayout()
-        ok_btn = QPushButton("OK")
+        ok_btn = QPushButton("Aceptar")
         ok_btn.clicked.connect(self.accept)
         cancel_btn = QPushButton("Cancelar")
         cancel_btn.clicked.connect(self.reject)
@@ -179,7 +179,7 @@ class DashboardWindow(QMainWindow):
     def __init__(self, controller):
         super().__init__()
         self.controller = controller
-        self.setWindowTitle("Dashboard")
+        self.setWindowTitle("Panel de Control")
         self.setGeometry(100, 100, 1200, 800)
         self.init_ui()
         self.apply_styles()
