@@ -1,0 +1,31 @@
+{
+    "records": [
+        {
+            "nombre": "Profile 1",
+            "navegador": "Chrome",
+            "email": "",
+            "contrasena": "",
+            "aplicaciones": [
+                "WhatsApp"
+            ],
+            "fecha": "2026-04-26",
+            "estado": "Activo",
+            "notas": "",
+            "id": 1
+        },
+        {
+            "nombre": "Profile 2",
+            "navegador": "Chrome",
+            "email": "",
+            "contrasena": "",
+            "aplicaciones": [
+                "WhatsApp"
+            ],
+            "fecha": "2026-04-26",
+            "estado": "Activo",
+            "notas": "",
+            "id": 2
+        }
+    ],
+    "next_id": 3
+}

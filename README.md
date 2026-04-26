@@ -78,7 +78,7 @@ python main.py
 ## Configuración
 
 - `core/config.py` define `CHROME_URL` y `FIREFOX_URL`.
-- Los perfiles se almacenan en memoria en `DataRepository`.
+- Los perfiles se almacenan persistentemente en `data.json`.
 
 ## Notas
 
